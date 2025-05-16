@@ -1,0 +1,40 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ length: 100, unique: true })
+  username: string;
+
+  @Column({ length: 100, unique: true })
+  email: string;
+
+  @Column({ length: 100, select: false })
+  password: string;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column('simple-array', { default: 'user' })
+  roles: string[];
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+
+  @Column({nullable: true })
+  lastLogin: Date;
+
+  @Column({ nullable: true })
+  profilePicture: string;
+}
