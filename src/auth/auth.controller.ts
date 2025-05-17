@@ -18,27 +18,20 @@ import { UsersService } from '../users/users.service';
 import { RefreshTokenDto } from '../auth/dto/refreshToken.dto';
 import { LogoutDto } from './dto/logout.dto';
 
+
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
+    private tokenService: TokenService,
   ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(
-      loginDto.username,
-      loginDto.password,
-    );
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    if (!user.isEmailVerified) {
-  throw new UnauthorizedException('Please verify your email first');
-}
-
+    const { username, password } = loginDto;
+    const user = await this.authService.validateUser(username, password);
     return this.authService.login(user);
   }
 
@@ -54,7 +47,7 @@ export class AuthController {
         usernameExists,
       });
     }
-    
+
     return this.authService.register(registerDto);
   }
 
@@ -88,4 +81,4 @@ export class AuthController {
     await this.authService.logout(logoutDto.id);
     return { message: 'Logged out successfully' };
   }
-}
+
