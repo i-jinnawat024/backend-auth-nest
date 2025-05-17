@@ -61,9 +61,20 @@ export class UsersService {
   }
 
   async findByVerificationToken(token: string): Promise<User | null> {
-  return await this.userRepository.findOne({
-    where: { emailVerificationToken: token },
-  });
+    return await this.userRepository.findOne({
+      where: { emailVerificationToken: token },
+    });
+  }
+  
+ async updateRefreshToken(user: UpdateUserDto, refreshToken?: string|null) {
+  if (refreshToken) {
+    const salt = await bcrypt.genSalt();
+    user.refreshToken = await bcrypt.hash(refreshToken, salt);
+  } else {
+    user.refreshToken = null;
+  }
+
+  return this.userRepository.save(user);
 }
 
 }
