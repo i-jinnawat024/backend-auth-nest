@@ -29,17 +29,8 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(
-      loginDto.username,
-      loginDto.password,
-    );
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    if (!user.isEmailVerified) {
-      throw new UnauthorizedException('Please verify your email first');
-    }
-
+    const { username, password } = loginDto;
+    const user = await this.authService.validateUser(username, password);
     return this.authService.login(user);
   }
 

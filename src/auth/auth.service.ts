@@ -16,6 +16,16 @@ export class AuthService {
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByField('username', username);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException('Please verify your email first');
+    }
+    const isMatch = await bcrypt.compare(pass, user!.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
     if (user) {
       const { password, ...result } = user;
       return result;
