@@ -32,9 +32,18 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @Column({nullable: true })
+  @Column({ nullable: true })
   lastLogin: Date;
 
   @Column({ nullable: true })
   profilePicture: string;
+
+  @Column({ default: false })
+  isEmailVerified: boolean;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  emailVerificationToken: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  emailVerificationTokenExpires: Date | null;
 }

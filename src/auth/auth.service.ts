@@ -3,13 +3,15 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { MailService } from '../mail/mail.service';
 import { RegisterDto } from './dto/register.dto';
-
+import { randomBytes } from 'crypto';
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private mailService: MailService
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
@@ -56,6 +58,13 @@ export class AuthService {
 
   async register(loginDto: any) {
     const user = await this.usersService.create(loginDto);
+
+    const token = randomBytes(32).toString('hex');
+    user.emailVerificationToken = token;
+    user.emailVerificationTokenExpires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
+    await this.usersService.save(user);
+
+    await this.mailService.sendEmailVerification(user.email, token);
     return this.login(user);
   }
 }

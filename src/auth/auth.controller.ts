@@ -7,15 +7,21 @@ import {
   HttpCode,
   HttpStatus,
   ConflictException,
+  Get,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+  ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -27,6 +33,10 @@ export class AuthController {
     if (!user) {
       throw new UnauthorizedException();
     }
+    if (!user.isEmailVerified) {
+  throw new UnauthorizedException('Please verify your email first');
+}
+
     return this.authService.login(user);
   }
 
@@ -42,7 +52,26 @@ export class AuthController {
         usernameExists,
       });
     }
-
+    
     return this.authService.register(registerDto);
+  }
+
+  @Get('verify-email')
+  async verifyEmail(@Query('token') token: string) {
+    const user = await this.usersService.findByVerificationToken(token);
+    if (
+      !user ||
+      !user.emailVerificationTokenExpires ||
+      user.emailVerificationTokenExpires < new Date()
+    ) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationTokenExpires = null;
+    await this.usersService.save(user);
+
+    return { message: 'Email verified successfully' };
   }
 }
