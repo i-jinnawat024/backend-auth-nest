@@ -1,27 +1,51 @@
-// auth/auth.service.ts
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { TokenService } from '../token/token.service';
 import { MailService } from '../mail/mail.service';
 import { RegisterDto } from './dto/register.dto';
 import { randomBytes } from 'crypto';
+import * as bcrypt from 'bcrypt';
+
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService,
-    private mailService: MailService
+    private mailService: MailService,
+    private tokenService: TokenService,
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByField('username', username);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException('Please verify your email first');
+    }
+    const isMatch = await bcrypt.compare(pass, user!.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
     if (user) {
       const { password, ...result } = user;
       return result;
     }
     return null;
   }
+
+  async validateRefreshToken(userId: number, refreshTokenFromClient: string) {
+    const user = await this.usersService.findOneByField('id', userId);
+    if (!user || !user.refreshToken) throw new UnauthorizedException();
+
+    const isMatch = await bcrypt.compare(
+      refreshTokenFromClient,
+      user.refreshToken,
+    );
+    if (!isMatch) throw new UnauthorizedException();
+
+    return user;
+  }
+
   async existingUser(registerDto: RegisterDto): Promise<{
     emailExists: boolean;
     usernameExists: boolean;
@@ -38,16 +62,12 @@ export class AuthService {
   }
 
   async login(user: any) {
-    user.lastLogin = new Date();
-    await this.usersService.save(user);
-    const payload = {
-      username: user.username,
-      sub: user.id,
-      roles: user.roles,
-    };
-    const token = this.jwtService.sign(payload);
+    const accessToken = await this.tokenService.generateAccessToken(user);
+    const refreshToken =
+      await this.tokenService.generateAndStoreRefreshToken(user);
     return {
-      access_token: token,
+      access_token: accessToken,
+      refresh_token: refreshToken,
       user: {
         id: user.id,
         username: user.username,
@@ -61,10 +81,20 @@ export class AuthService {
 
     const token = randomBytes(32).toString('hex');
     user.emailVerificationToken = token;
-    user.emailVerificationTokenExpires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
+    user.emailVerificationTokenExpires = new Date(Date.now() + 1000 * 60 * 60);
     await this.usersService.save(user);
 
     await this.mailService.sendEmailVerification(user.email, token);
     return this.login(user);
+  }
+
+  async refreshToken(refreshTokenFromClient: string) {
+    const user = await this.tokenService.validateRefreshToken(
+      refreshTokenFromClient,
+    );
+    const accessToken = await this.tokenService.generateAccessToken(user);
+    const newRefreshToken =
+      await this.tokenService.generateAndStoreRefreshToken(user);
+    return { accessToken, refreshToken: newRefreshToken };
   }
 }

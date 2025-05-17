@@ -15,28 +15,22 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
+import { TokenService } from '../token/token.service';
+import { RefreshTokenDto } from '../auth/dto/refreshToken.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
+    private tokenService: TokenService,
   ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(
-      loginDto.username,
-      loginDto.password,
-    );
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    if (!user.isEmailVerified) {
-  throw new UnauthorizedException('Please verify your email first');
-}
-
+    const { username, password } = loginDto;
+    const user = await this.authService.validateUser(username, password);
     return this.authService.login(user);
   }
 
@@ -52,7 +46,7 @@ export class AuthController {
         usernameExists,
       });
     }
-    
+
     return this.authService.register(registerDto);
   }
 
@@ -73,5 +67,10 @@ export class AuthController {
     await this.usersService.save(user);
 
     return { message: 'Email verified successfully' };
+  }
+
+  @Post('refresh')
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    return await this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 }

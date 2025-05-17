@@ -5,6 +5,7 @@ import {
   MinLength,
   MaxLength,
   Matches,
+  isString,
 } from 'class-validator';
 
 export class UpdateUserDto {
@@ -52,4 +53,7 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   profilePicture?: string;
+
+  @IsString()
+  refreshToken
 }
