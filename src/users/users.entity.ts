@@ -17,7 +17,7 @@ export class User {
   @Column({ length: 100, unique: true })
   email: string;
 
-  @Column({ length: 100, select: false })
+  @Column({ length: 100 })
   password: string;
 
   @Column({ default: true })
@@ -26,15 +26,27 @@ export class User {
   @Column('simple-array', { default: 'user' })
   roles: string[];
 
+  @Column({ nullable: true })
+  lastLogin: Date;
+
+  @Column({ nullable: true })
+  profilePicture: string;
+
+  @Column({ default: false })
+  isEmailVerified: boolean;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  emailVerificationToken: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  emailVerificationTokenExpires: Date | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  refreshToken: string;
+
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
-
-  @Column({nullable: true })
-  lastLogin: Date;
-
-  @Column({ nullable: true })
-  profilePicture: string;
 }
