@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { TokenService } from '../token/token.service';
 import { MailService } from '../mail/mail.service';
@@ -74,6 +79,19 @@ export class AuthService {
         roles: user.roles,
       },
     };
+  }
+
+  async logout(userId: number): Promise<void> {
+    const user = await this.usersService.findOneByField(
+      'id',
+      userId,
+    );
+
+    if (!user) {
+      throw new BadRequestException('Invalid refresh token');
+    }
+
+    await this.tokenService.revokeRefreshToken(user);
   }
 
   async register(loginDto: any) {

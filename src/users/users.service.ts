@@ -66,10 +66,15 @@ export class UsersService {
     });
   }
   
-  async updateRefreshToken(user: UpdateUserDto, refreshToken: string) {
+
+ async updateRefreshToken(user: UpdateUserDto, refreshToken?: string|null) {
+  if (refreshToken) {
     const salt = await bcrypt.genSalt();
     user.refreshToken = await bcrypt.hash(refreshToken, salt);
+  } else {
+    user.refreshToken = null;
+  }
 
-    return this.userRepository.save(user);
+  return this.userRepository.save(user);
   }
 }

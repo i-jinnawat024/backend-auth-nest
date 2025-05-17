@@ -48,12 +48,12 @@ export class TokenService {
       refreshTokenFromClient,
       user.refreshToken,
     );
-    
+
     if (!isMatch) throw new UnauthorizedException();
     return user;
   }
 
-  //   async revokeRefreshToken(userId: number) {
-  //     await this.usersService.removeRefreshToken(userId);
-  //   }
+  async revokeRefreshToken(user: any): Promise<void> {
+    await this.usersService.updateRefreshToken(user, null);
+  }
 }

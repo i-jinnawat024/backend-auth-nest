@@ -15,8 +15,9 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
-import { TokenService } from '../token/token.service';
 import { RefreshTokenDto } from '../auth/dto/refreshToken.dto';
+import { LogoutDto } from './dto/logout.dto';
+
 
 @Controller('auth')
 export class AuthController {
@@ -73,4 +74,11 @@ export class AuthController {
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
     return await this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
-}
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Body() logoutDto: LogoutDto) {
+    await this.authService.logout(logoutDto.id);
+    return { message: 'Logged out successfully' };
+  }
+
