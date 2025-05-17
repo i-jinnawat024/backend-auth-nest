@@ -59,4 +59,11 @@ export class UsersService {
     user.isActive = false;
     return this.userRepository.save(user);
   }
+
+  async findByVerificationToken(token: string): Promise<User | null> {
+  return await this.userRepository.findOne({
+    where: { emailVerificationToken: token },
+  });
+}
+
 }
