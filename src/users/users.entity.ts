@@ -26,12 +26,6 @@ export class User {
   @Column('simple-array', { default: 'user' })
   roles: string[];
 
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
-
   @Column({ nullable: true })
   lastLogin: Date;
 
@@ -46,4 +40,13 @@ export class User {
 
   @Column({ type: 'datetime', nullable: true })
   emailVerificationTokenExpires: Date | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  refreshToken: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }

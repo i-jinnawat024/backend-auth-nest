@@ -24,8 +24,8 @@ export class UsersService {
   }
 
   async save(user: User): Promise<User> {
-  return this.userRepository.save(user);
-}
+    return this.userRepository.save(user);
+  }
 
   async create(loginDto: LoginDto): Promise<User> {
     const salt = await bcrypt.genSalt();
@@ -40,7 +40,7 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.userRepository.find({where:{isActive:true}});
+    return this.userRepository.find({ where: { isActive: true } });
   }
 
   async updateUser(user: UpdateUserDto, updateUserDto: UpdateUserDto) {
@@ -61,9 +61,15 @@ export class UsersService {
   }
 
   async findByVerificationToken(token: string): Promise<User | null> {
-  return await this.userRepository.findOne({
-    where: { emailVerificationToken: token },
-  });
-}
+    return await this.userRepository.findOne({
+      where: { emailVerificationToken: token },
+    });
+  }
+  
+  async updateRefreshToken(user: UpdateUserDto, refreshToken: string) {
+    const salt = await bcrypt.genSalt();
+    user.refreshToken = await bcrypt.hash(refreshToken, salt);
 
+    return this.userRepository.save(user);
+  }
 }
