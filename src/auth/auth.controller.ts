@@ -24,7 +24,6 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
-    private tokenService: TokenService,
   ) {}
 
   @Post('login')
@@ -82,3 +81,4 @@ export class AuthController {
     return { message: 'Logged out successfully' };
   }
 
+}
