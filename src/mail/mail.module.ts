@@ -14,7 +14,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         transport: {
           host: configService.get<string>('EMAIL_HOST', 'smtp.gmail.com'),
           port: configService.get<number>('EMAIL_PORT', 587),
-          secure: false,
+          secure: configService.get<boolean>('EMAIL_SECURE', false),
+          logger: process.env.NODE_ENV !== 'production',
           auth: {
             user: configService.get<string>('EMAIL_USER'),
             pass: configService.get<string>('EMAIL_PASS'),
