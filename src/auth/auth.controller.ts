@@ -24,7 +24,6 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
-    private tokenService: TokenService,
   ) {}
 
   @Post('login')
@@ -81,4 +80,4 @@ export class AuthController {
     await this.authService.logout(logoutDto.id);
     return { message: 'Logged out successfully' };
   }
-
+}
