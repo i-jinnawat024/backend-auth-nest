@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsOptional,
   IsString,
@@ -6,6 +7,7 @@ import {
   MaxLength,
   Matches,
   isString,
+  IsDate,
 } from 'class-validator';
 
 export class UpdateUserDto {
@@ -13,17 +15,17 @@ export class UpdateUserDto {
   @IsString()
   @MinLength(4, { message: 'Username must be at least 4 characters' })
   @MaxLength(20, { message: 'Username must be at most 20 characters' })
-  username: string;
+  username?: string;
 
   @IsOptional()
   @IsEmail({}, { message: 'Invalid email format' })
-  email: string;
+  email?: string;
 
   @IsOptional()
-  isActive: boolean;
+  isActive?: boolean;
 
   @IsOptional()
-  roles: string[];
+  roles?: string[];
 
   @IsOptional()
   @IsString()
@@ -41,19 +43,22 @@ export class UpdateUserDto {
   @Matches(/(?=.*[!@#$%^&*])/, {
     message: 'Password must contain at least one special character (!@#$%^&*)',
   })
-  password: string;
+  password?: string;
 
   @IsOptional()
   @IsString()
   confirmPassword?: string;
 
   @IsOptional()
-  lastLogin: Date;
+  @IsDate()
+  @Type(() => Date)
+  lastLogin?: Date;
 
   @IsOptional()
   @IsString()
   profilePicture?: string;
 
+  @IsOptional()
   @IsString()
-  refreshToken
+  refreshToken?: string|null;
 }

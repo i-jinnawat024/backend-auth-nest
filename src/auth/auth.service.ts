@@ -22,7 +22,7 @@ export class AuthService {
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByField('username', username);
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({message:'ไม่พบผู้ใช้ในระบบ'});
     }
     if (!user.isEmailVerified) {
       throw new UnauthorizedException('Please verify your email first');
