@@ -10,17 +10,20 @@ import {
   Put,
   Body,
   Delete,
+  Request,
+  Post,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { AuthGuard } from '@nestjs/passport';
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get()
   async getUserAll() {
@@ -32,7 +35,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
+ @Get('id/:id')
   @HttpCode(HttpStatus.OK)
   async getUserById(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOneByField('id', id);
@@ -43,7 +46,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Put(':id')
+  @Put('id/:id')
   async updateUserById(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -56,10 +59,16 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
+  @Delete('id/:id')
   async deleteUserById(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOneByField('id', id);
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     return this.usersService.remove(user);
+  }
+
+  @UseGuards(AuthGuard('jwt')) 
+  @Get('profile')
+  getHello(@Request() req) {
+    return { user: req.user }; 
   }
 }

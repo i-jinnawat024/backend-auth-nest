@@ -18,7 +18,6 @@ import { UsersService } from '../users/users.service';
 import { RefreshTokenDto } from '../auth/dto/refreshToken.dto';
 import { LogoutDto } from './dto/logout.dto';
 
-
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -28,15 +27,16 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body('user') loginDto: LoginDto) {
     const { username, password } = loginDto;
     const user = await this.authService.validateUser(username, password);
+    await this.usersService.updateUser(user, { lastLogin: new Date() });
     return this.authService.login(user);
   }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() registerDto: RegisterDto) {
+  async register(@Body('user') registerDto: RegisterDto) {
     const { emailExists, usernameExists } =
       await this.authService.existingUser(registerDto);
     if (emailExists || usernameExists) {
