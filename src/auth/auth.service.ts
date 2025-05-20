@@ -1,4 +1,3 @@
-
 import {
   BadRequestException,
   Injectable,
@@ -82,10 +81,7 @@ export class AuthService {
   }
 
   async logout(userId: number): Promise<void> {
-    const user = await this.usersService.findOneByField(
-      'id',
-      userId,
-    );
+    const user = await this.usersService.findOneByField('id', userId);
 
     if (!user) {
       throw new BadRequestException('Invalid refresh token');
@@ -102,8 +98,10 @@ export class AuthService {
     user.emailVerificationTokenExpires = new Date(Date.now() + 1000 * 60 * 60);
     await this.usersService.save(user);
 
-    await this.mailService.sendEmailVerification(user.email, token);
-    return this.login(user);
+    this.mailService.sendEmailVerification(user.email, token, loginDto).catch((err) => {
+      console.error('Error sending verification email (background):', err);
+    });
+    return { message: 'Register successfully' };
   }
 
   async refreshToken(refreshTokenFromClient: string) {
