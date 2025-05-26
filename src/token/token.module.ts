@@ -7,17 +7,19 @@ import { UsersModule } from '../users/users.module';
 @Module({
   imports: [
     JwtModule.registerAsync({
-          imports: [ConfigModule],
-          inject: [ConfigService],
-          useFactory: async (configService: ConfigService) => ({
-            secret: configService.get<string>('JWT_REFRESH_SECRET'),
-            signOptions: { expiresIn: configService.get<string>('JWT_REFRESH_EXPIRES_IN') },
-          }),
-        }), 
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_REFRESH_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+        },
+      }),
+    }),
     ConfigModule,
     UsersModule,
   ],
   providers: [TokenService],
-  exports: [TokenService], 
+  exports: [TokenService],
 })
 export class TokenModule {}
