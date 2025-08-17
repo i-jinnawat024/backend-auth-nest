@@ -1,48 +1,95 @@
-// auth/auth.controller.ts
 import {
   Body,
   Controller,
   Post,
-  UnauthorizedException,
   HttpCode,
   HttpStatus,
   ConflictException,
+  Get,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-
+import { RefreshTokenDto } from '../auth/dto/refreshToken.dto';
+import { LogoutDto } from './dto/logout.dto';
+import { LoginUseCase } from '../application/use-cases/auth/login.use-case';
+import { RegisterUseCase } from '../application/use-cases/auth/register.use-case';
+import { LogoutUseCase } from '../application/use-cases/auth/logout.use-case';
+import { RefreshTokenUseCase } from '../application/use-cases/auth/refresh-token.use-case';
+import { VerifyEmailUseCase } from '../application/use-cases/auth/verify-email.use-case';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private readonly loginUseCase: LoginUseCase,
+    private readonly registerUseCase: RegisterUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly verifyEmailUseCase: VerifyEmailUseCase,
+  ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(
-      loginDto.username,
-      loginDto.password,
-    );
-    if (!user) {
-      throw new UnauthorizedException();
+    try {
+      return await this.loginUseCase.execute({
+        username: loginDto.username,
+        password: loginDto.password,
+      });
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-    return this.authService.login(user);
   }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerDto: RegisterDto) {
-    const { emailExists, usernameExists } =
-      await this.authService.existingUser(registerDto);
-    if (emailExists || usernameExists) {
-      throw new ConflictException({
-        message: 'User already exists',
-        emailExists,
-        usernameExists,
+    const { username, email, password } = registerDto;
+    try {
+      await this.registerUseCase.execute({
+        username,
+        email,
+        password,
       });
+      return 'Registration successful. Please check your email for verification.';
+    } catch (error) {
+      if (error.message.includes('already exists')) {
+        throw new ConflictException(error.message);
+      }
+      throw new BadRequestException(error.message);
     }
+  }
 
-    return this.authService.register(registerDto);
+  @Get('verify-email')
+  async verifyEmail(@Query('token') token: string) {
+    try {
+      await this.verifyEmailUseCase.execute({ token });
+      return 'Email verified successfully';
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Post('refresh')
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    try {
+      return await this.refreshTokenUseCase.execute({
+        refreshToken: refreshTokenDto.refreshToken,
+      });
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Body() logoutDto: LogoutDto) {
+    try {
+      await this.logoutUseCase.execute({ userId: logoutDto.id });
+      return 'Logged out successfully';
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }
