@@ -1,9 +1,7 @@
-// auth/auth.controller.ts
 import {
   Body,
   Controller,
   Post,
-  UnauthorizedException,
   HttpCode,
   HttpStatus,
   ConflictException,
@@ -11,22 +9,38 @@ import {
   Query,
   BadRequestException,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { UsersService } from '../users/users.service';
 import { RefreshTokenDto } from '../auth/dto/refreshToken.dto';
 import { LogoutDto } from './dto/logout.dto';
+import { LoginUseCase } from '../application/use-cases/auth/login.use-case';
+import { RegisterUseCase } from '../application/use-cases/auth/register.use-case';
+import { LogoutUseCase } from '../application/use-cases/auth/logout.use-case';
+import { RefreshTokenUseCase } from '../application/use-cases/auth/refresh-token.use-case';
+import { VerifyEmailUseCase } from '../application/use-cases/auth/verify-email.use-case';
+
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    private authService: AuthService,
-    private usersService: UsersService,
+    private readonly loginUseCase: LoginUseCase,
+    private readonly registerUseCase: RegisterUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly verifyEmailUseCase: VerifyEmailUseCase,
   ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  async login(@Body() loginDto: LoginDto) {
+    try {
+      return await this.loginUseCase.execute({
+        username: loginDto.username,
+        password: loginDto.password,
+      });
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   async login(@Body('user') loginDto: LoginDto) {
     const { username, password } = loginDto;
     const user = await this.authService.validateUser(username, password);
@@ -36,48 +50,53 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body('user') registerDto: RegisterDto) {
-    const { emailExists, usernameExists } =
-      await this.authService.existingUser(registerDto);
-    if (emailExists || usernameExists) {
-      throw new ConflictException({
-        message: 'User already exists',
-        emailExists,
-        usernameExists,
-      });
-    }
+  async register(@Body() registerDto: RegisterDto) {
+    const { username, email, password } = registerDto;
+    try {
+      await this.registerUseCase.execute({
+        username,
+        email,
+        password,
 
-    return this.authService.register(registerDto);
+      });
+      return 'Registration successful. Please check your email for verification.';
+    } catch (error) {
+      if (error.message.includes('already exists')) {
+        throw new ConflictException(error.message);
+      }
+      throw new BadRequestException(error.message);
+    }
   }
 
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string) {
-    const user = await this.usersService.findByVerificationToken(token);
-    if (
-      !user ||
-      !user.emailVerificationTokenExpires ||
-      user.emailVerificationTokenExpires < new Date()
-    ) {
-      throw new BadRequestException('Invalid or expired token');
+    try {
+      await this.verifyEmailUseCase.execute({ token });
+      return 'Email verified successfully';
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-
-    user.isEmailVerified = true;
-    user.emailVerificationToken = null;
-    user.emailVerificationTokenExpires = null;
-    await this.usersService.save(user);
-
-    return { message: 'Email verified successfully' };
   }
 
   @Post('refresh')
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    return await this.authService.refreshToken(refreshTokenDto.refreshToken);
+    try {
+      return await this.refreshTokenUseCase.execute({
+        refreshToken: refreshTokenDto.refreshToken,
+      });
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Body() logoutDto: LogoutDto) {
-    await this.authService.logout(logoutDto.id);
-    return { message: 'Logged out successfully' };
+    try {
+      await this.logoutUseCase.execute({ userId: logoutDto.id });
+      return 'Logged out successfully';
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }

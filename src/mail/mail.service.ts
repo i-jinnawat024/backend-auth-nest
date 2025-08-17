@@ -1,28 +1,33 @@
-import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
+import { MailerService } from "@nestjs-modules/mailer";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { IMailService } from "../domain/services/mail.service.interface";
+
 
 @Injectable()
-export class MailService {
-  constructor(private mailerService: MailerService) {
-    console.log('MailerService initialized');
+export class MailService implements IMailService {
+  constructor(
+    private mailerService: MailerService,
+    private configService: ConfigService
+  ) {}
+
+  async sendEmailVerification(email: string, token: string): Promise<void> {
+    const baseUrl = this.configService.get<string>('BASE_URL');
+    const url = `${baseUrl}/auth/verify-email?token=${token}`;
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Verify your email',
+      html: `<p>Click <a href="${url}">here</a> to verify your email</p>`,
+    });
   }
 
-  async sendEmailVerification(to: string, token: string, loginDto:any) {
-    const url = `${process.env.APP_BASE_URL}/auth/verify-email?token=${token}`;
-    try {
-      await this.mailerService.sendMail({
-        to: to,
-        subject: 'Verify your email',
-        html: `
-      <h2>Email Verification</h2>
-      <p>Please click the link below to verify your email:</p>
-      <a href="${url}">ยืนยันอีเมล</a>
-      <p>If you did not request this, you can ignore this email.</p>
-    `,
-      });
-    } catch (e) {
-      console.error('Failed to send email:', e);
-      throw new Error('Unable to send verification email');
-    }
+  async sendPasswordReset(email: string, token: string): Promise<void> {
+    const baseUrl = this.configService.get<string>('BASE_URL');
+    const url = `${baseUrl}/auth/reset-password?token=${token}`;
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Reset your password',
+      html: `<p>Click <a href="${url}">here</a> to reset your password</p>`,
+    });
   }
 }

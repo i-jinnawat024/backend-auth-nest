@@ -6,22 +6,24 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    ConfigModule, 
+    ConfigModule,
     MailerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         transport: {
-          host: configService.get<string>('EMAIL_HOST', 'smtp.gmail.com'),
-          port: configService.get<number>('EMAIL_PORT', 587),
-          secure: configService.get<string>('EMAIL_SECURE', 'false') === 'true',
-          // logger: process.env.NODE_ENV !== 'production',
+          host: configService.get<string>('EMAIL_HOST'),
+          port: configService.get<number>('EMAIL_PORT'),
+          secure: false,
           auth: {
             user: configService.get<string>('EMAIL_USER'),
             pass: configService.get<string>('EMAIL_PASS'),
           },
         },
         defaults: {
-          from: configService.get<string>('EMAIL_FROM', '"No Reply" <default_email@gmail.com>'),
+          from: configService.get<string>(
+            'EMAIL_FROM',
+            '"No Reply" <default_email@gmail.com>',
+          ),
         },
       }),
     }),
