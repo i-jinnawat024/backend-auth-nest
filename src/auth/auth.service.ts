@@ -98,7 +98,7 @@ export class AuthService {
     user.emailVerificationTokenExpires = new Date(Date.now() + 1000 * 60 * 60);
     await this.usersService.save(user);
 
-    this.mailService.sendEmailVerification(user.email, token, loginDto).catch((err) => {
+    this.mailService.sendEmailVerification(user.email, token).catch((err) => {
       console.error('Error sending verification email (background):', err);
     });
     return { message: 'Register successfully' };
