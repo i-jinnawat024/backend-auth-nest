@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 @Entity('users')
-export class User {
+export class UserOrmEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -45,8 +45,8 @@ export class User {
   refreshToken: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }
