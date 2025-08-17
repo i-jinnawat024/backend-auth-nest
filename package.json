@@ -1,8 +1,8 @@
 {
-  "name": "my-nest-project",
+  "name": "backend-nest-auth",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Jinnawat Inyim <i.jinnawat024@gmail.com>",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

@@ -12,7 +12,7 @@ export class MailService implements IMailService {
   ) {}
 
   async sendEmailVerification(email: string, token: string): Promise<void> {
-    const baseUrl = this.configService.get<string>('BASE_URL', 'http://localhost:3000');
+    const baseUrl = this.configService.get<string>('BASE_URL');
     const url = `${baseUrl}/auth/verify-email?token=${token}`;
     await this.mailerService.sendMail({
       to: email,
@@ -22,7 +22,7 @@ export class MailService implements IMailService {
   }
 
   async sendPasswordReset(email: string, token: string): Promise<void> {
-    const baseUrl = this.configService.get<string>('BASE_URL', 'http://localhost:3000');
+    const baseUrl = this.configService.get<string>('BASE_URL');
     const url = `${baseUrl}/auth/reset-password?token=${token}`;
     await this.mailerService.sendMail({
       to: email,

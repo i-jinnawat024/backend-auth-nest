@@ -7,7 +7,10 @@ import {
   Inject,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ILoggerService, LOGGER_SERVICE } from '../../domain/services/logger.service.interface';
+import {
+  ILoggerService,
+  LOGGER_SERVICE,
+} from '../../domain/services/logger.service.interface';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -33,11 +36,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     const errorResponse = {
       statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
       method: request.method,
-      message: typeof message === 'string' ? message : (message as any).message || message,
-      correlationId: request['correlationId'] || 'unknown',
+      message:
+        typeof message === 'string'
+          ? message
+          : (message as any).message || message,
     };
 
     // Log the error with context
@@ -55,13 +58,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       this.logger.error(
         `Internal Server Error: ${errorResponse.message}`,
         exception instanceof Error ? exception : new Error(String(exception)),
-        logContext,
       );
     } else if (status >= 400) {
-      this.logger.warn(
-        `Client Error: ${errorResponse.message}`,
-        logContext,
-      );
+      this.logger.warn(`Client Error: ${errorResponse.message}`);
     }
 
     response.status(status).json(errorResponse);

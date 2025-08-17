@@ -45,13 +45,14 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerDto: RegisterDto) {
+    const { username, email, password } = registerDto;
     try {
       await this.registerUseCase.execute({
-        username: registerDto.username,
-        email: registerDto.email,
-        password: registerDto.password,
+        username,
+        email,
+        password,
       });
-      return { message: 'Registration successful. Please check your email for verification.' };
+      return 'Registration successful. Please check your email for verification.';
     } catch (error) {
       if (error.message.includes('already exists')) {
         throw new ConflictException(error.message);
@@ -64,7 +65,7 @@ export class AuthController {
   async verifyEmail(@Query('token') token: string) {
     try {
       await this.verifyEmailUseCase.execute({ token });
-      return { message: 'Email verified successfully' };
+      return 'Email verified successfully';
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -86,7 +87,7 @@ export class AuthController {
   async logout(@Body() logoutDto: LogoutDto) {
     try {
       await this.logoutUseCase.execute({ userId: logoutDto.id });
-      return { message: 'Logged out successfully' };
+      return 'Logged out successfully';
     } catch (error) {
       throw new BadRequestException(error.message);
     }

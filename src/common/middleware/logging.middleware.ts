@@ -25,48 +25,32 @@ export class LoggingMiddleware implements NestMiddleware {
     const { method, originalUrl, ip, headers } = req;
     const userAgent = headers['user-agent'] || '';
 
-    // Log incoming request
-    this.logger.info(`Incoming ${method} ${originalUrl}`, {
-      correlationId,
-      method,
-      url: originalUrl,
-      ip,
-      userAgent,
-      requestId: correlationId,
-    });
+    // Skip logging for health check and metrics endpoints
+    if (originalUrl.includes('/health') || originalUrl.includes('/metrics')) {
+      next();
+      return;
+    }
 
     // Increment active connections
     this.metricsService.incrementActiveConnections();
 
     // Override res.end to capture response
-    const originalEnd = res.end;
-    res.end = function(chunk: any, encoding?: any) {
+    const originalEnd = res.end.bind(res);
+    const self = this;
+    res.end = function(chunk: any, encoding?: any, cb?: () => void) {
       const duration = (Date.now() - startTime) / 1000;
       const { statusCode } = res;
-      
-      // Log response
-      const logContext = {
-        correlationId,
-        method,
-        url: originalUrl,
-        statusCode,
-        duration: `${duration}s`,
-        ip,
-        userAgent,
-      };
 
       if (statusCode >= 400) {
-        this.logger.error(`${method} ${originalUrl} - ${statusCode}`, undefined, logContext);
-      } else {
-        this.logger.info(`${method} ${originalUrl} - ${statusCode}`, logContext);
+        self.logger.error(`Client Error: ${method} ${originalUrl}`);
       }
 
       // Record metrics
-      this.metricsService.recordHttpRequest(method, originalUrl, statusCode, duration);
-      this.metricsService.decrementActiveConnections();
+      self.metricsService.recordHttpRequest(method, originalUrl, statusCode, duration);
+      self.metricsService.decrementActiveConnections();
 
-      originalEnd.call(this, chunk, encoding);
-    }.bind(this);
+      return originalEnd(chunk, encoding, cb);
+    };
 
     next();
   }

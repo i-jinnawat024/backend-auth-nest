@@ -8,24 +8,20 @@ export class WinstonLoggerService implements ILoggerService {
 
   constructor() {
     this.logger = winston.createLogger({
-      level: process.env.LOG_LEVEL || 'info',
+      level: process.env.LOG_LEVEL,
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.errors({ stack: true }),
         winston.format.json(),
-        winston.format.printf(({ timestamp, level, message, stack, context, ...meta }) => {
+        winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
           const logEntry: any = {
             timestamp,
             level,
             message,
             service: 'auth-service',
-            ...meta,
           };
           if (context) {
             logEntry.context = context;
-          }
-          if (stack) {
-            logEntry.stack = stack;
           }
           return JSON.stringify(logEntry);
         }),

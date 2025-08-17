@@ -1,5 +1,5 @@
 import { Module, MiddlewareConsumer } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -14,6 +14,7 @@ import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { WinstonLoggerService } from './infrastructure/services/winston-logger.service';
 import { LOGGER_SERVICE } from './domain/services/logger.service.interface';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 @Module({
   imports: [
@@ -44,6 +45,10 @@ import { LOGGER_SERVICE } from './domain/services/logger.service.interface';
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
     },
   ],
 })
