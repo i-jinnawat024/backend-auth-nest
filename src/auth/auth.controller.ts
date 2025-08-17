@@ -41,11 +41,6 @@ export class AuthController {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
-  async login(@Body('user') loginDto: LoginDto) {
-    const { username, password } = loginDto;
-    const user = await this.authService.validateUser(username, password);
-    await this.usersService.updateUser(user, { lastLogin: new Date() });
-    return this.authService.login(user);
   }
 
   @Post('register')
