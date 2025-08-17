@@ -20,7 +20,6 @@ import { MAIL_SERVICE } from '../domain/services/mail.service.interface';
 import { LOGGER_SERVICE } from '../domain/services/logger.service.interface';
 import { MailService } from '../mail/mail.service';
 import { WinstonLoggerService } from '../infrastructure/services/winston-logger.service';
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -36,6 +35,7 @@ import { WinstonLoggerService } from '../infrastructure/services/winston-logger.
     MailModule,
   ],
   controllers: [AuthController],
+
   providers: [
     // Use Cases
     LoginUseCase,

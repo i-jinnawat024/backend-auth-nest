@@ -26,8 +26,8 @@ export class User {
   @Column('simple-array', { default: 'user' })
   roles: string[];
 
-  @Column({ nullable: true })
-  lastLogin: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  lastLogin?: Date;
 
   @Column({ nullable: true })
   profilePicture: string;
