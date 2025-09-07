@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.entity';
 
 @Module({
   imports: [
@@ -37,7 +39,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       extra: {
         trustServerCertificate: true,
       },
-      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     }),
   ],
 })

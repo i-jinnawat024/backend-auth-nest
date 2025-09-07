@@ -50,7 +50,7 @@ export class LoginUseCase {
         throw new Error('Please verify your email first');
       }
 
-      // Verify password
+      
       const isPasswordValid = await this.hashService.compare(command.password, user.password);
       if (!isPasswordValid) {
         this.logger.warn('Login failed: Invalid password', {
@@ -95,3 +95,4 @@ export class LoginUseCase {
     }
   }
 }
+
