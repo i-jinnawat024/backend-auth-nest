@@ -9,6 +9,6 @@ export class AppController {
   getHealth(): string {
     return this.appService.getHealthCheck();
 
-  }
 
+  }
 }

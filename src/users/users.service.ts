@@ -14,10 +14,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async findOneByField(
-    field: keyof User,
-    value: string | number,
-  ): Promise<User | null> {
+  async findOneByField(field: keyof User, value: string | number): Promise<User | null> {
     return this.userRepository.findOne({
       where: { [field]: value },
     });
@@ -65,16 +62,15 @@ export class UsersService {
       where: { emailVerificationToken: token },
     });
   }
-  
 
- async updateRefreshToken(user: UpdateUserDto, refreshToken?: string|null) {
-  if (refreshToken) {
-    const salt = await bcrypt.genSalt();
-    user.refreshToken = await bcrypt.hash(refreshToken, salt);
-  } else {
-    user.refreshToken = null;
-  }
+  async updateRefreshToken(user: UpdateUserDto, refreshToken?: string | null) {
+    if (refreshToken) {
+      const salt = await bcrypt.genSalt();
+      user.refreshToken = await bcrypt.hash(refreshToken, salt);
+    } else {
+      user.refreshToken = null;
+    }
 
-  return this.userRepository.save(user);
+    return this.userRepository.save(user);
   }
 }

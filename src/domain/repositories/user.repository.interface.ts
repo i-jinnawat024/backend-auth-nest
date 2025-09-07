@@ -9,5 +9,5 @@ export interface IUserRepository {
   delete(id: number): Promise<void>;
   findAll(): Promise<User[]>;
 }
-
 export const USER_REPOSITORY = Symbol('IUserRepository');
+

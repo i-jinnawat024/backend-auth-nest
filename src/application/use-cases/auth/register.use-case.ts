@@ -67,3 +67,4 @@ export class RegisterUseCase {
     await this.mailService.sendEmailVerification(email.value, verificationToken);
   }
 }
+

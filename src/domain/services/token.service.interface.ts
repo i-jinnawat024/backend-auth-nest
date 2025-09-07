@@ -12,3 +12,4 @@ export interface ITokenService {
 }
 
 export const TOKEN_SERVICE = Symbol('ITokenService');
+

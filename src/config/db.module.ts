@@ -11,7 +11,6 @@ import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.e
       useFactory: (configService: ConfigService) => {
         const databaseUrl = configService.get<string>('DATABASE_URL');
 
-        // ถ้ามี DATABASE_URL ให้ใช้
         if (databaseUrl) {
           return {
             type: 'postgres',
@@ -23,10 +22,9 @@ import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.e
           };
         }
 
-        // Legacy config format
         const dbType = configService.get<string>('DB_TYPE');
         return {
-          type: dbType as any,
+          type: dbType as 'mssql',
           host: configService.get<string>('DB_HOST'),
           port: configService.get<number>('DB_PORT'),
           username: configService.get<string>('DB_USERNAME'),
@@ -34,11 +32,12 @@ import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.e
           database: configService.get<string>('DB_DATABASE'),
           synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
           logging: configService.get<boolean>('DB_LOGGING'),
-          ssl: configService.get<boolean>('DB_SSL')
-            ? { rejectUnauthorized: false }
-            : false,
+          ssl: configService.get<boolean>('DB_SSL') ? { rejectUnauthorized: false } : false,
           entities: [UserOrmEntity],
         };
+      },
+      extra: {
+        trustServerCertificate: true,
       },
     }),
   ],

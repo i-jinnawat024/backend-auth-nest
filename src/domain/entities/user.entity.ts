@@ -16,14 +16,9 @@ export class User {
     public readonly updatedAt?: Date,
   ) {}
 
-  static create(props: {
-    username: string;
-    email: string;
-    password: string;
-    roles?: string[];
-  }): User {
+  static create(props: { username: string; email: string; password: string; roles?: string[] }): User {
     return new User(
-      0, // Will be set by repository
+      0,
       props.username,
       props.email,
       props.password,
@@ -135,3 +130,4 @@ export class User {
     );
   }
 }
+
