@@ -15,6 +15,15 @@ import { ConfigModule } from '@nestjs/config';
     PassportModule,
     ConfigModule.forRoot({
       isGlobal: true,
+<<<<<<< Updated upstream
+=======
+      envFilePath: [
+        `.env.${process.env.NODE_ENV}.local`,
+        `.env.${process.env.NODE_ENV}`,
+        '.env.development.local',
+        '.env',
+      ].filter(Boolean),
+>>>>>>> Stashed changes
     }),
   ],
   controllers: [AppController],
