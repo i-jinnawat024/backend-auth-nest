@@ -32,7 +32,7 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: true })
   emailVerificationToken: string | null;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   emailVerificationTokenExpires: Date | null;
 
   @Column({ type: 'varchar', nullable: true })
