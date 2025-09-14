@@ -1,105 +1,53 @@
-version: '3.8'
+###############################################
+# Dockerfile for NestJS (pnpm, multi-stage)
+# - Small alpine image
+# - Installs dev deps in builder, prod deps in runner
+# - Runs as non-root user
+###############################################
 
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-    env_file:
-      - .env.production
-    depends_on:
-      - postgres
-      - redis
-    restart: unless-stopped
-    networks:
-      - app-network
+# ----- Builder -----
+FROM node:20-alpine AS builder
 
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: ${DB_NAME:-nestjs_auth}
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - app-network
-
-volumes:
-  postgres_data:
-  redis_data:
-
-networks:
-  app-network:
-    driver: bridge
-
-# Multi-stage build for NestJS application on Railway
-# Stage 1: Build stage
-FROM node:18-alpine AS builder
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# System deps for native modules (e.g., bcrypt)
+RUN apk add --no-cache python3 make g++
+
+# Install deps
+COPY package.json pnpm-lock.yaml ./
+RUN npm i -g pnpm && pnpm install --frozen-lockfile
+
+# Build
 COPY . .
-RUN pnpm run build
+RUN pnpm build
 
-# Stage 2: Production stage
-FROM node:18-alpine AS production
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# ----- Runner -----
+FROM node:20-alpine AS runner
 
-# Create app directory
 WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
 
-# Create non-root user (Railway compatible)
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nestjs -u 1001
+# Minimal tools for proper signal handling and healthcheck
+RUN apk add --no-cache dumb-init wget
 
-# Copy package files
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
+# Install only production deps
+COPY package.json pnpm-lock.yaml ./
+RUN npm i -g pnpm \
+ && pnpm install --prod --frozen-lockfile \
+ && pnpm store prune
 
-# Install pnpm
-RUN npm install -g pnpm
+# Copy build output
+COPY --from=builder /app/dist ./dist
 
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile && pnpm store prune
+# Use non-root user provided by the node image
+USER node
 
-# Copy built application from builder stage
-COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+EXPOSE 3000
 
-# Change ownership of the app directory
-RUN chown -R nestjs:nodejs /app
-
-# Set Railway-compatible user (can be overridden by RAILWAY_RUN_UID)
-USER nestjs
-
-# Expose port (Railway will handle port mapping)
-EXPOSE $PORT
-
-# Health check for Railway
+# Optional healthcheck (expects /health endpoint)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:$PORT/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
-# Start the application
 CMD ["dumb-init", "node", "dist/main"]
