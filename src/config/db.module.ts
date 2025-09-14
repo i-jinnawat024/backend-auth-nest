@@ -22,9 +22,8 @@ import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.e
           };
         }
 
-        const dbType = configService.get<string>('DB_TYPE');
         return {
-          type: dbType as 'mssql',
+          type: 'postgres',
           host: configService.get<string>('DB_HOST'),
           port: configService.get<number>('DB_PORT'),
           username: configService.get<string>('DB_USERNAME'),
@@ -35,9 +34,6 @@ import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.e
           ssl: configService.get<boolean>('DB_SSL') ? { rejectUnauthorized: false } : false,
           entities: [UserOrmEntity],
         };
-      },
-      extra: {
-        trustServerCertificate: true,
       },
     }),
   ],
