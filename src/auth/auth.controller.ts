@@ -22,6 +22,7 @@ import { VerifyEmailUseCase } from '../application/use-cases/auth/verify-email.u
 import { SendEmailVerificationCodeUseCase } from '../application/use-cases/auth/send-email-verification-code.use-case';
 import { VerifyEmailCodeUseCase } from '../application/use-cases/auth/verify-email-code.use-case';
 
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -45,6 +46,11 @@ export class AuthController {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  async login(@Body('user') loginDto: LoginDto) {
+    const { username, password } = loginDto;
+    const user = await this.authService.validateUser(username, password);
+    await this.usersService.updateUser(user, { lastLogin: new Date() });
+    return this.authService.login(user);
   }
 
   @Post('register')
@@ -56,6 +62,7 @@ export class AuthController {
         username,
         email,
         password,
+
       });
       return 'Registration successful. Please check your email for verification.';
     } catch (error) {

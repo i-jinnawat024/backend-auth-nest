@@ -40,9 +40,8 @@ export class UsersService {
     return this.userRepository.find({ where: { isActive: true } });
   }
 
-  async updateUser(user: UpdateUserDto, updateUserDto: UpdateUserDto) {
+  async updateUser(user: User, updateUserDto: UpdateUserDto) {
     const { password, confirmPassword, ...rest } = updateUserDto;
-
     if (password && password == confirmPassword) {
       const salt = await bcrypt.genSalt();
       user.password = await bcrypt.hash(password, salt);
@@ -52,7 +51,7 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async remove(user: UpdateUserDto) {
+  async remove(user: User) {
     user.isActive = false;
     return this.userRepository.save(user);
   }
@@ -70,6 +69,7 @@ export class UsersService {
     } else {
       user.refreshToken = null;
     }
+
 
     return this.userRepository.save(user);
   }
