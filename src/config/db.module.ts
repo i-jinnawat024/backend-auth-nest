@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.entity';
+import { EmailVerificationCodeEntity } from '../infrastructure/persistence/email-verification-code.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.e
             synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
             logging: configService.get<boolean>('DB_LOGGING'),
             ssl: { rejectUnauthorized: false },
-            entities: [UserOrmEntity],
+            entities: [UserOrmEntity, EmailVerificationCodeEntity],
           };
         }
 
@@ -32,7 +33,7 @@ import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.e
           synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
           logging: configService.get<boolean>('DB_LOGGING'),
           ssl: configService.get<boolean>('DB_SSL') ? { rejectUnauthorized: false } : false,
-          entities: [UserOrmEntity],
+          entities: [UserOrmEntity, EmailVerificationCodeEntity],
         };
       },
     }),

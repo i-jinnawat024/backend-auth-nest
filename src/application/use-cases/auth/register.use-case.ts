@@ -1,11 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { User } from '../../../domain/entities/user.entity';
+import { EmailVerificationCode } from '../../../domain/entities/email-verification-code.entity';
 import { IUserRepository, USER_REPOSITORY } from '../../../domain/repositories/user.repository.interface';
+import { IEmailVerificationCodeRepository, EMAIL_VERIFICATION_CODE_REPOSITORY } from '../../../domain/repositories/email-verification-code.repository.interface';
 import { IHashService, HASH_SERVICE } from '../../../domain/services/hash.service.interface';
 import { IMailService, MAIL_SERVICE } from '../../../domain/services/mail.service.interface';
 import { Email } from '../../../domain/value-objects/email.vo';
 import { Password } from '../../../domain/value-objects/password.vo';
-import { randomBytes } from 'crypto';
 
 export interface RegisterCommand {
   username: string;
@@ -24,6 +25,8 @@ export class RegisterUseCase {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
+    @Inject(EMAIL_VERIFICATION_CODE_REPOSITORY)
+    private readonly emailVerificationCodeRepository: IEmailVerificationCodeRepository,
     @Inject(HASH_SERVICE)
     private readonly hashService: IHashService,
     @Inject(MAIL_SERVICE)
@@ -48,23 +51,22 @@ export class RegisterUseCase {
     // Hash password
     const hashedPassword = await this.hashService.hash(password.value);
 
-    // Create user
+    // Create user (without email verification)
     const user = User.create({
       username: command.username,
       email: email.value,
       password: hashedPassword,
     });
 
-    // Generate email verification token
-    const verificationToken = randomBytes(32).toString('hex');
-    const tokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
-    const userWithToken = user.setEmailVerificationToken(verificationToken, tokenExpiry);
-
     // Save user
-    const savedUser = await this.userRepository.save(userWithToken);
+    const savedUser = await this.userRepository.save(user);
 
-    // Send verification email
-    await this.mailService.sendEmailVerification(email.value, verificationToken);
+    // Generate and save email verification code
+    const verificationCode = EmailVerificationCode.createWithGeneratedCode(email.value, 10);
+    await this.emailVerificationCodeRepository.save(verificationCode);
+
+    // Send verification code email
+    await this.mailService.sendEmailVerificationCode(email.value, verificationCode.code);
   }
 }
 
