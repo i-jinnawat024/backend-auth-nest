@@ -36,7 +36,7 @@ export class User {
   emailVerificationTokenExpires: Date | null;
 
   @Column({ type: 'varchar', nullable: true })
-  refreshToken: string;
+  refreshToken: string | null;
 
   @CreateDateColumn()
   created_at: Date;
