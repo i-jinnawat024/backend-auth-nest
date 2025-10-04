@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import {
-  ITokenService,
-  TokenPayload,
-} from '../../domain/services/token.service.interface';
+import { ITokenService, TokenPayload } from '../../domain/services/token.service.interface';
 
 @Injectable()
 export class JwtTokenService implements ITokenService {
+  private readonly algorithm = 'HS512'; // ใช้ algorithm ที่แข็งแกร่งกว่า
+  private readonly issuer = 'auth-service';
+  private readonly audience = 'api-client';
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,

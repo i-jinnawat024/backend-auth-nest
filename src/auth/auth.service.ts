@@ -1,8 +1,5 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { TokenService } from '../token/token.service';
 import { MailService } from '../mail/mail.service';
@@ -41,10 +38,7 @@ export class AuthService {
     const user = await this.usersService.findOneByField('id', userId);
     if (!user || !user.refreshToken) throw new UnauthorizedException();
 
-    const isMatch = await bcrypt.compare(
-      refreshTokenFromClient,
-      user.refreshToken,
-    );
+    const isMatch = await bcrypt.compare(refreshTokenFromClient, user.refreshToken);
     if (!isMatch) throw new UnauthorizedException();
 
     return user;
@@ -67,8 +61,7 @@ export class AuthService {
 
   async login(user: any) {
     const accessToken = await this.tokenService.generateAccessToken(user);
-    const refreshToken =
-      await this.tokenService.generateAndStoreRefreshToken(user);
+    const refreshToken = await this.tokenService.generateAndStoreRefreshToken(user);
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
@@ -105,12 +98,9 @@ export class AuthService {
   }
 
   async refreshToken(refreshTokenFromClient: string) {
-    const user = await this.tokenService.validateRefreshToken(
-      refreshTokenFromClient,
-    );
+    const user = await this.tokenService.validateRefreshToken(refreshTokenFromClient);
     const accessToken = await this.tokenService.generateAccessToken(user);
-    const newRefreshToken =
-      await this.tokenService.generateAndStoreRefreshToken(user);
+    const newRefreshToken = await this.tokenService.generateAndStoreRefreshToken(user);
     return { accessToken, refreshToken: newRefreshToken };
   }
 }

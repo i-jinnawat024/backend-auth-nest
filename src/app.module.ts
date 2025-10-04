@@ -30,7 +30,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
         `.env.${process.env.NODE_ENV}.local`,
         `.env.${process.env.NODE_ENV}`,
         '.env.development.local',
-        '.env'
+        '.env',
       ].filter(Boolean),
     }),
   ],

@@ -46,11 +46,8 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Put('id/:id')
-  async updateUserById(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  @Put(':id')
+  async updateUserById(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.usersService.findOneByField('id', id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);

@@ -12,7 +12,7 @@ export class TokenService {
     private configService: ConfigService,
   ) {}
 
-  generateAccessToken(user: any) {
+  async generateAccessToken(user: any) {
     const payload = {
       sub: user.id,
       username: user.username,
@@ -44,10 +44,7 @@ export class TokenService {
     const user = await this.usersService.findOneByField('id', payload.sub);
     if (!user || !user.refreshToken) throw new UnauthorizedException();
 
-    const isMatch = await bcrypt.compare(
-      refreshTokenFromClient,
-      user.refreshToken,
-    );
+    const isMatch = await bcrypt.compare(refreshTokenFromClient, user.refreshToken);
 
     if (!isMatch) throw new UnauthorizedException();
     return user;

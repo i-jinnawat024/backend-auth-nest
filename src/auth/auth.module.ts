@@ -5,7 +5,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailModule } from 'src/mail/mail.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserOrmEntity } from '../infrastructure/persistence/entities/user-orm.entity';
+import { EmailVerificationCodeEntity } from '../infrastructure/persistence/email-verification-code.entity';
 import { UserRepository } from '../infrastructure/persistence/repositories/user.repository';
+import { EmailVerificationCodeRepository } from '../infrastructure/persistence/email-verification-code.repository';
 import { HashService } from '../infrastructure/services/hash.service';
 import { JwtTokenService } from '../infrastructure/services/jwt-token.service';
 import { LoginUseCase } from '../application/use-cases/auth/login.use-case';
@@ -13,7 +15,10 @@ import { RegisterUseCase } from '../application/use-cases/auth/register.use-case
 import { LogoutUseCase } from '../application/use-cases/auth/logout.use-case';
 import { RefreshTokenUseCase } from '../application/use-cases/auth/refresh-token.use-case';
 import { VerifyEmailUseCase } from '../application/use-cases/auth/verify-email.use-case';
+import { SendEmailVerificationCodeUseCase } from '../application/use-cases/auth/send-email-verification-code.use-case';
+import { VerifyEmailCodeUseCase } from '../application/use-cases/auth/verify-email-code.use-case';
 import { USER_REPOSITORY } from '../domain/repositories/user.repository.interface';
+import { EMAIL_VERIFICATION_CODE_REPOSITORY } from '../domain/repositories/email-verification-code.repository.interface';
 import { HASH_SERVICE } from '../domain/services/hash.service.interface';
 import { TOKEN_SERVICE } from '../domain/services/token.service.interface';
 import { MAIL_SERVICE } from '../domain/services/mail.service.interface';
@@ -23,7 +28,7 @@ import { WinstonLoggerService } from '../infrastructure/services/winston-logger.
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forFeature([UserOrmEntity]),
+    TypeOrmModule.forFeature([UserOrmEntity, EmailVerificationCodeEntity]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -43,11 +48,17 @@ import { WinstonLoggerService } from '../infrastructure/services/winston-logger.
     LogoutUseCase,
     RefreshTokenUseCase,
     VerifyEmailUseCase,
+    SendEmailVerificationCodeUseCase,
+    VerifyEmailCodeUseCase,
     
     // Services
     {
       provide: USER_REPOSITORY,
       useClass: UserRepository,
+    },
+    {
+      provide: EMAIL_VERIFICATION_CODE_REPOSITORY,
+      useClass: EmailVerificationCodeRepository,
     },
     {
       provide: HASH_SERVICE,
@@ -72,6 +83,8 @@ import { WinstonLoggerService } from '../infrastructure/services/winston-logger.
     LogoutUseCase,
     RefreshTokenUseCase,
     VerifyEmailUseCase,
+    SendEmailVerificationCodeUseCase,
+    VerifyEmailCodeUseCase,
   ],
 })
 export class AuthModule {}

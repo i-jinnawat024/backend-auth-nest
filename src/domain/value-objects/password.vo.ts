@@ -16,10 +16,10 @@ export class Password {
     if (password.length < 8) {
       return false;
     }
-    
+
     const hasLetter = /[a-zA-Z]/.test(password);
     const hasNumber = /\d/.test(password);
-    
+
     return hasLetter && hasNumber;
   }
 

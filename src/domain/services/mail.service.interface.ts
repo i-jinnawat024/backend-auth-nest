@@ -1,5 +1,6 @@
 export interface IMailService {
   sendEmailVerification(email: string, token: string): Promise<void>;
+  sendEmailVerificationCode(email: string, code: string): Promise<void>;
   sendPasswordReset(email: string, token: string): Promise<void>;
 }
 

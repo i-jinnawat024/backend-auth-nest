@@ -29,10 +29,7 @@ export class WinstonLoggerService implements ILoggerService {
       defaultMeta: { service: 'auth-service' },
       transports: [
         new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple(),
-          ),
+          format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
         }),
         new winston.transports.File({
           filename: 'logs/error.log',
@@ -84,3 +81,4 @@ export class WinstonLoggerService implements ILoggerService {
     this.logger.info(message, { context });
   }
 }
+

@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { User } from '../../../domain/entities/user.entity';
 import { IUserRepository, USER_REPOSITORY } from '../../../domain/repositories/user.repository.interface';
 import { IHashService, HASH_SERVICE } from '../../../domain/services/hash.service.interface';
 import { ITokenService, TOKEN_SERVICE } from '../../../domain/services/token.service.interface';
@@ -37,7 +36,6 @@ export class LoginUseCase {
     this.logger.info('Login attempt started', { username: command.username });
 
     try {
-      // Find user
       const user = await this.userRepository.findByUsername(command.username);
       if (!user) {
         this.logger.warn('Login failed: User not found', { username: command.username });
@@ -45,24 +43,23 @@ export class LoginUseCase {
       }
 
       if (!user.isEmailVerified) {
-        this.logger.warn('Login failed: Email not verified', { 
-          username: command.username, 
-          userId: user.id 
+        this.logger.warn('Login failed: Email not verified', {
+          username: command.username,
+          userId: user.id,
         });
         throw new Error('Please verify your email first');
       }
 
-      // Verify password
+      
       const isPasswordValid = await this.hashService.compare(command.password, user.password);
       if (!isPasswordValid) {
-        this.logger.warn('Login failed: Invalid password', { 
-          username: command.username, 
-          userId: user.id 
+        this.logger.warn('Login failed: Invalid password', {
+          username: command.username,
+          userId: user.id,
         });
         throw new Error('Invalid credentials');
       }
 
-      // Generate tokens
       const accessToken = await this.tokenService.generateAccessToken({
         sub: user.id,
         username: user.username,
@@ -71,15 +68,14 @@ export class LoginUseCase {
 
       const refreshToken = await this.tokenService.generateRefreshToken(user.id);
 
-      // Update user with refresh token (hashed)
       const hashedRefreshToken = await this.hashService.hash(refreshToken);
       const updatedUser = user.updateRefreshToken(hashedRefreshToken);
       await this.userRepository.save(updatedUser);
 
-      this.logger.info('Login successful', { 
-        username: command.username, 
+      this.logger.info('Login successful', {
+        username: command.username,
         userId: user.id,
-        roles: user.roles 
+        roles: user.roles,
       });
 
       return {
@@ -92,10 +88,11 @@ export class LoginUseCase {
         refreshToken,
       };
     } catch (error) {
-      this.logger.error('Login use case error', error as Error, { 
-        username: command.username 
+      this.logger.error('Login use case error', error as Error, {
+        username: command.username,
       });
       throw error;
     }
   }
 }
+
